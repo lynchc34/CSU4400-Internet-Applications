@@ -1,0 +1,78 @@
+<!--A reactive client running in an Internet Browser using Vue.js 
+    Demonstrating some simple knowledge of the V- directives and moustache syntax 
+    Interacting with a Server-Side application using at least one Web API primitive -->
+
+<!--Browsers load Vue code from the web via CDN-->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+<div id="app">
+    <h1>Welcome to the OpenWeatherMapAPI</h1>
+    <div>This will provide you with a 4 day weather forecast for a city of your choice!</div>
+    City: <input v-model="location"> 
+    Country: <input v-model="country">
+    <button v-on:click="checkWeather">Enter</button>
+    <br>
+    <br>
+    <div v-if="umbrella != 'No umbrella'">
+        {{umbrella}}
+    </div>
+    <div v-if="temp4packing != ' '">
+        {{temp4packing}}
+    </div>
+    <br>
+
+    <!--Create table to display forecast-->
+    <table border="5">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>City</th>
+                <th>Description</th>
+                <th>Temperature (°C)</th>
+                <th>Feels Like (°C)</th>
+                <th>Rainfall (mm)</th>
+                <th>Wind Speed (m/s)</th>
+                <th>Pack for</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="row in forecast">
+                <td v-for="variable in row">
+                    {{variable}}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+  </div>
+
+<!--Creating the Vue app (containing a reactive pool)-->
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            //reactive variables
+            location: "",
+            country: "",
+            forecast: [],
+            umbrella: "",
+            temp4packing: " "
+        },
+        methods: {
+            checkWeather: checkWeather
+        }
+    })
+
+    /*Fetch - only available in browser
+      Returns a promise and resolves to a stream
+      .json() extracts results from the stream and returns a JSON object
+      Extracts the weather for the specified location and puts this into reactive variables */
+    function checkWeather() {
+        let prom = fetch("weather/" + this.location + ((this.country == "") ? "" : ",") + this.country)
+        prom.then(response => response.json())
+            .then(response => {
+                this.forecast = response.forecastList
+                this.umbrella = response.umbrella
+                this.temp4packing = response.temp4packing
+            })
+    }
+</script>
