@@ -3,8 +3,10 @@ const express = require('express')
 const app = express()
 const port = 3000
 const path = require("path")
+const cors = require("cors")
 let publicPath = path.resolve(__dirname, "public")
 
+app.use(cors())
 app.use(express.static(publicPath))
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
@@ -38,7 +40,7 @@ async function checkWeather(req, res) {
     temp4packing = ' ' 
 
     //Parse data 
-    for(var index = 0; index < (weatherData.list.length); index++){
+    for(var index = 0; index < (weatherData.list?.length); index++){
         date = weatherData.list[index].dt_txt
         description = weatherData.list[index].weather[0].description
         temp = weatherData.list[index].main.temp

@@ -67,12 +67,12 @@
       .json() extracts results from the stream and returns a JSON object
       Extracts the weather for the specified location and puts this into reactive variables */
     function checkWeather() {
-        let prom = fetch("weather/" + this.location + ((this.country == "") ? "" : ",") + this.country)
+        let prom = fetch("http://localhost:3000/weather/" + this.location + ((this.country == "") ? "" : ",") + this.country)
         prom.then(response => response.json())
             .then(response => {
                 this.forecast = response.forecastList
                 this.umbrella = response.umbrella
                 this.temp4packing = response.temp4packing
-            })
+            }).catch(console.error)
     }
 </script>
