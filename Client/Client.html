@@ -1,78 +1,123 @@
-<!--A reactive client running in an Internet Browser using Vue.js 
-    Demonstrating some simple knowledge of the V- directives and moustache syntax 
-    Interacting with a Server-Side application using at least one Web API primitive -->
 
-<!--Browsers load Vue code from the web via CDN-->
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-
+<link rel="stylesheet" href="style.css">    
 <div id="app">
-    <h1>Welcome to the OpenWeatherMapAPI</h1>
-    <div>This will provide you with a 4 day weather forecast for a city of your choice!</div>
-    City: <input v-model="location"> 
-    Country: <input v-model="country">
-    <button v-on:click="checkWeather">Enter</button>
-    <br>
-    <br>
-    <div v-if="umbrella != 'No umbrella'">
-        {{umbrella}}
-    </div>
-    <div v-if="temp4packing != ' '">
-        {{temp4packing}}
-    </div>
-    <br>
-
-    <!--Create table to display forecast-->
-    <table border="5">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>City</th>
-                <th>Description</th>
-                <th>Temperature (°C)</th>
-                <th>Feels Like (°C)</th>
-                <th>Rainfall (mm)</th>
-                <th>Wind Speed (m/s)</th>
-                <th>Pack for</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="row in forecast">
-                <td v-for="variable in row">
-                    {{variable}}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-  </div>
-
-<!--Creating the Vue app (containing a reactive pool)-->
-<script>
-    var app = new Vue({
-        el: "#app",
-        data: {
-            //reactive variables
-            location: "",
-            country: "",
-            forecast: [],
-            umbrella: "",
-            temp4packing: " "
+    <h1>Hey there!🤗 </h1>
+    <h2>Insert the location you would like to find the weather out about!</h2>
+    <div>The ouput will be the average of the following 4 day forecast wtih some advice on how to prepare for the expected weather!💡</div>
+        <br>
+        <input v-model="location">
+        <button v-on:click="httpsGet">Get Weather</button>
+        <br>
+        <br>
+        <br>
+        <div class="table">
+            <table border="5">
+                <thead>
+                    <tr>
+                        <th>Temperature (°C)</th>
+                        <th>Wind Speed (m/s)</th>
+                        <th>Rainfall (mm)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ tempResult }}</td>
+                        <td>{{ windResult }}</td>
+                        <td>{{ rainResult }}</td>
+                    </tr>
+                </tbody>
+                </table>
+            <p>{{ umbrella }}</p>
+            <p>{{ temp4packing }}</p>
+            <p>{{ PM2_5 }}</p>
+        </div>   
+</div>
+<script type="module">
+    import { createApp } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+    createApp({
+        data() {
+            return {
+                location: null,
+                umbrella: null,
+                temp4packing: null,
+                tempResult: null,
+                rainResult: null,
+                windResult: null,
+                PM2_5: null,
+            }
         },
         methods: {
-            checkWeather: checkWeather
-        }
-    })
+            httpsGet(clicked) {
+                if (clicked) {
+                    //call
+                    fetch(`/forecast/${this.location}`)
+                    .then((response) => response.json())
+                    .then((weatherData) => {
+                        //create values for data
+                        var temp = 0, rain = 0, wind = 0;
+                        var tempUmbrella
 
-    /*Fetch - only available in browser
-      Returns a promise and resolves to a stream
-      .json() extracts results from the stream and returns a JSON object
-      Extracts the weather for the specified location and puts this into reactive variables */
-    function checkWeather() {
-        let prom = fetch("http://localhost:3000/weather/" + this.location + ((this.country == "") ? "" : ",") + this.country)
-        prom.then(response => response.json())
-            .then(response => {
-                this.forecast = response.forecastList
-                this.umbrella = response.umbrella
-                this.temp4packing = response.temp4packing
-            }).catch(console.error)
-    }
+                        for (var count = 0; count < 32; count++) {
+                            if ("rain" in weatherData["list"][count]) {
+                                tempUmbrella = true;
+                                rain += weatherData["list"][count]["rain"]["3h"];
+                            }
+                            temp += weatherData["list"][count]["main"]["temp"];
+                            wind += weatherData["list"][count]["wind"]["speed"];
+                        }
+                        if (tempUmbrella) {
+                            this.umbrella = "Looks like rain, you should bring an umbrella!";
+                        } else {
+                            this.umbrella = "No rain forecasted!";
+                        }
+
+                        var forecastArr = [];
+                        var count2 = 0;
+                        while (forecastArr.length !== 3 && count2 < 32) {
+                            var weatherCase = weatherData["list"][count2]["main"]["temp"];
+                            if (weatherCase < 12 ) {
+                                forecastArr.push("Cold🥶");
+                            }
+                            else if (weatherCase >= 12 && weatherCase <= 25) {
+                                forecastArr.push("Mild😬");
+                            }
+                            else {
+                                forecastArr.push("Hot🥵🔥");
+                            }
+                            count2++;
+                        }
+
+                        var lenTotal = forecastArr.length;
+                        this.temp4packing = `It is forecasted to be ${forecastArr[0].charAt(0).toUpperCase() + forecastArr[0].slice(1)}${lenTotal == 1 ? "" :lenTotal == 2 ? "" : ""}, pack the correct clothes!`;
+
+                        this.tempResult = (temp/32).toFixed(2);
+                        this.rainResult = (rain/32).toFixed(2);
+                        this.windResult = (wind/32).toFixed(2);
+
+                        var lon = weatherData["city"]["coord"]["lon"].toFixed(2);
+                        var lat = weatherData["city"]["coord"]["lat"].toFixed(2);
+
+                        //call
+                        fetch(`/air_pollution/${lon}/${lat}`)
+                        .then((response) => response.json())
+                        .then((pollutionData) => {
+
+                            var pollutionBoolean = false;
+                            for (var count3 = 0; count3 < pollutionData["list"].length; count3++) {
+                                if (pollutionData["list"][count]["components"]["pm2_5"] >= 10) {
+                                    pollutionBoolean = true;
+                                }
+                            }
+                            if (pollutionBoolean == true) {
+                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]}, the air is polluted. For your safety wear a face covering.`;
+                            } else {
+                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]} the air is not polluted. It is not necessary to wear a face covering.`
+                            }
+
+                        });
+                    });
+                }
+            }
+        }
+    }).mount("#app")
 </script>

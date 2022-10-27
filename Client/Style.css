@@ -1,0 +1,21 @@
+/* :root {
+    -- colour-primary: #020202;
+} */
+#app {
+    /* font-family: arial;
+    font-size: 24px;
+    margin: 25px;
+    width: 350px;
+    height: 200px;
+    outline: dashed 1px black; */
+
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+.table {
+    vertical-align: bottom;
+}  
+body{
+    background-color: rgb(121, 138, 135);
+}
