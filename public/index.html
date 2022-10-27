@@ -88,8 +88,8 @@
                         }
 
                         var lenTotal = forecastArr.length;
-                        this.temp4packing = `It is forecasted to be ${forecastArr[0].charAt(0).toUpperCase() + forecastArr[0].slice(1)}${lenTotal == 1 ? "" :lenTotal == 2 ? "" : ""}, pack the correct clothes!`;
-
+                        this.temp4packing = `It is forecasted to be ${forecastArr[0].charAt(0).toUpperCase() + forecastArr[0].slice(1)}, pack the correct clothes!`;
+                
                         this.tempResult = (temp/32).toFixed(2);
                         this.rainResult = (rain/32).toFixed(2);
                         this.windResult = (wind/32).toFixed(2);
@@ -109,9 +109,9 @@
                                 }
                             }
                             if (pollutionBoolean == true) {
-                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]}, the air is polluted. For your safety wear a face covering.`;
+                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]}, the air is polluted. PM2_5 exceeds a level of 10. For your safety wear a face covering.`;
                             } else {
-                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]} the air is not polluted. It is not necessary to wear a face covering.`
+                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]} the air is not polluted. PM2_5 is below the level of 10.  It is not necessary to wear a face covering.`
                             }
 
                         });
