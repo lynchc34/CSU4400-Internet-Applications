@@ -1,4 +1,3 @@
-
 <link rel="stylesheet" href="style.css">    
 <div id="app">
     <h1>Hey there!🤗 </h1>
@@ -6,6 +5,7 @@
     <div>The ouput will be the average of the following 4 day forecast wtih some advice on how to prepare for the expected weather!💡</div>
         <br>
         <input v-model="location">
+        <br>
         <button v-on:click="httpsGet">Get Weather</button>
         <br>
         <br>
@@ -53,19 +53,44 @@
                     fetch(`/forecast/${this.location}`)
                     .then((response) => response.json())
                     .then((weatherData) => {
+
+                        //pollution call, location co-ords fixed to two decimals
+                        var lon = weatherData["city"]["coord"]["lon"].toFixed(2);
+                        var lat = weatherData["city"]["coord"]["lat"].toFixed(2);
+
+                        fetch(`/air_pollution/${lon}/${lat}`)
+                        .then((response) => response.json())
+                        .then((pollutionData) => {
+
+                            // traverse through and find if hum>10
+                            var pollutionBoolean = false;
+                            for (var count3 = 0; count3 < pollutionData["list"].length; count3++) {
+                                if (pollutionData["list"][count3]["components"]["pm2_5"] >= 10) {
+                                    pollutionBoolean = true;
+                                }
+                            }
+                            //state result
+                            if (pollutionBoolean == true) {
+                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]}, the air is polluted. PM2_5 exceeds a level of 10. For your safety wear a face covering.`;
+                            } else {
+                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]} the air is not polluted. PM2_5 is below the level of 10.  It is not necessary to wear a face covering.`
+                            }
+
+                        });
+
                         //create values for data
                         var temp = 0, rain = 0, wind = 0;
-                        var tempUmbrella
+                        var umbrellaBoolean = false;
 
                         for (var count = 0; count < 32; count++) {
                             if ("rain" in weatherData["list"][count]) {
-                                tempUmbrella = true;
+                                umbrellaBoolean = true;
                                 rain += weatherData["list"][count]["rain"]["3h"];
                             }
                             temp += weatherData["list"][count]["main"]["temp"];
                             wind += weatherData["list"][count]["wind"]["speed"];
                         }
-                        if (tempUmbrella) {
+                        if (umbrellaBoolean = true) {
                             this.umbrella = "Looks like rain, you should bring an umbrella!";
                         } else {
                             this.umbrella = "No rain forecasted!";
@@ -74,11 +99,11 @@
                         var forecastArr = [];
                         var count2 = 0;
                         while (forecastArr.length !== 3 && count2 < 32) {
-                            var weatherCase = weatherData["list"][count2]["main"]["temp"];
-                            if (weatherCase < 12 ) {
+                            var locTemp = weatherData["list"][count2]["main"]["temp"];
+                            if (locTemp < 12 ) {
                                 forecastArr.push("Cold🥶");
                             }
-                            else if (weatherCase >= 12 && weatherCase <= 25) {
+                            else if (locTemp >= 12 && locTemp <= 25) {
                                 forecastArr.push("Mild😬");
                             }
                             else {
@@ -87,34 +112,12 @@
                             count2++;
                         }
 
-                        var lenTotal = forecastArr.length;
+                        // final results, decimal points adjustment and hourly adjustment
                         this.temp4packing = `It is forecasted to be ${forecastArr[0].charAt(0).toUpperCase() + forecastArr[0].slice(1)}, pack the correct clothes!`;
-                
-                        this.tempResult = (temp/32).toFixed(2);
-                        this.rainResult = (rain/32).toFixed(2);
-                        this.windResult = (wind/32).toFixed(2);
+                        this.tempResult = (temp/32).toFixed(1);
+                        this.rainResult = (rain/32).toFixed(1);
+                        this.windResult = (wind/32).toFixed(1);
 
-                        var lon = weatherData["city"]["coord"]["lon"].toFixed(2);
-                        var lat = weatherData["city"]["coord"]["lat"].toFixed(2);
-
-                        //call
-                        fetch(`/air_pollution/${lon}/${lat}`)
-                        .then((response) => response.json())
-                        .then((pollutionData) => {
-
-                            var pollutionBoolean = false;
-                            for (var count3 = 0; count3 < pollutionData["list"].length; count3++) {
-                                if (pollutionData["list"][count]["components"]["pm2_5"] >= 10) {
-                                    pollutionBoolean = true;
-                                }
-                            }
-                            if (pollutionBoolean == true) {
-                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]}, the air is polluted. PM2_5 exceeds a level of 10. For your safety wear a face covering.`;
-                            } else {
-                                this.PM2_5  = `It appears that in ${weatherData["city"]["name"]} the air is not polluted. PM2_5 is below the level of 10.  It is not necessary to wear a face covering.`
-                            }
-
-                        });
                     });
                 }
             }

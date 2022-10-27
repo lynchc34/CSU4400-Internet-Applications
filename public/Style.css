@@ -14,6 +14,7 @@
     flex-direction: column;
   }
 .table {
+    align-items: center;
     vertical-align: bottom;
 }  
 body{
